@@ -999,19 +999,25 @@ threeninejdzzrbpmfhjcqdsix8two2bb
 5four3eight
 15nine1"""
 
-# data = """two1nine
-# eightwothree
-# abcone2threexyz
-# xtwone3four
-# 4nineeightseven2
-# zoneight234
-# 7pqrstsixteen"""
+data = """two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen"""
 
 digits = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
-def replace(src: str) -> str:
+def replace_first(src: str) -> str:
   for i in range(len(src)):
     for idx, d in enumerate(digits):
-      if src[i:i+len(d)] == d: src = src[0:i] + str(idx+1) + src[i+len(d):]
+      if src[i:i+len(d)] == d: return src[0:i] + str(idx+1) + src[i+len(d):]
   return src
 
-print(sum(x[0] * 10 + x[-1] for x in (tuple(map(int, filter(str.isdigit, replace(x)))) for x in data.split("\n"))))
+def replace_last(src: str) -> str:
+  for i in range(len(src)-1, -1, -1):
+    for idx, d in enumerate(digits):
+      if src[max(i-len(d), 0)+1:i+1] == d: return src[0:max(i-len(d), 0)+1] + str(idx+1) + src[i+1:]
+  return src
+
+print(sum(x[0] * 10 + x[-1] for x in (tuple(map(int, filter(str.isdigit, replace_last(replace_first(x))))) for x in data.split("\n"))))
