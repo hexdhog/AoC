@@ -999,6 +999,7 @@ threeninejdzzrbpmfhjcqdsix8two2bb
 5four3eight
 15nine1"""
 
+# sample
 data = """two1nine
 eightwothree
 abcone2threexyz
@@ -1006,6 +1007,12 @@ xtwone3four
 4nineeightseven2
 zoneight234
 7pqrstsixteen"""
+
+# conflicting entries
+data = """nleightwo7
+jxvh5jjxvfdeightwon
+cqbrtdnjzgx38twoneshm
+dbjeightwo9nine9"""
 
 digits = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 def replace_first(src: str) -> str:
@@ -1020,4 +1027,18 @@ def replace_last(src: str) -> str:
       if src[max(i-len(d), 0)+1:i+1] == d: return src[0:max(i-len(d), 0)+1] + str(idx+1) + src[i+1:]
   return src
 
-print(sum(x[0] * 10 + x[-1] for x in (tuple(map(int, filter(str.isdigit, replace_last(replace_first(x))))) for x in data.split("\n"))))
+def replace(s: str) -> str:
+  for i in range(len(s)):
+    for idx, d in enumerate(digits):
+      if s[i:i+len(d)] == d: return replace(s[0:i] + str(idx+1) + s[i+len(d):])
+      if s[-i-len(d):-i if i != 0 else None] == d: return replace(s[:-i-len(d)] + str(idx+1) + (s[-i:] if i != 0 else ""))
+  return s
+
+print("##### METHOD 1 #####")
+print("\n".join(replace_first(x) for x in data.split("\n")), end="\n\n")
+print("answer:", sum(x[0] * 10 + x[-1] for x in (tuple(map(int, filter(str.isdigit, replace_last(replace_first(x))))) for x in data.split("\n"))))
+print()
+
+print("##### METHOD 2 #####")
+print("\n".join(replace(x) for x in data.split("\n")), end="\n\n")
+print("answer:", sum(x[0] * 10 + x[-1] for x in (tuple(map(int, filter(str.isdigit, replace(x)))) for x in data.split("\n"))))
