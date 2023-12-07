@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from operator import mul
 from functools import reduce
+from typing import Callable
 
 data = """.......855.442......190..................................969..........520.......59.............................................172..........
 .......................-....@...21...........971........................*..............965.......577=..........316..465*169.................
@@ -142,46 +145,51 @@ data = """.......855.442......190..................................969..........
 ....229..........48....=....*.....447......................%....745$..........569...787.........*.....................887...................
 .......................369...515..............100...........174..............................633.973........................................"""
 
-data = """467..114..
-...*......
-..35..633.
-......#...
-617*......
-.....+.58.
-..592.....
-......755.
-...$.*....
-.664.598.."""
+# data = """467..114..
+# ...*......
+# ..35..633.
+# ......#...
+# 617*......
+# .....+.58.
+# ..592.....
+# ......755.
+# ...$.*....
+# .664.598.."""
 
-HBOUNDS = [(0,-1),(0,1)]
+HBOUNDS = [(0,-2),(0,-1),(0,1),(0,2)]
 BOUNDS = [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
-def bounds(mat: list, i: int, j: int, bcoords: list) -> list: return ((max(min(i+b[0], len(mat[i])-1), 0), max(min(j+b[1], len(mat[i])-1), 0)) for b in bcoords)
+def clip(val: int, _min: int, _max: int) -> int: return max(min(val, _max), _min)
+def bounds(mat: list, i: int, j: int, bcoords: list) -> list: return list(dict.fromkeys([(clip(i+_i, 0, len(mat)-1), clip(j+_j, 0, len(mat)-1)) for _i, _j in bcoords]))
+def cuntil(l: list, off: int, stop: Callable, step: int = 1) -> int:
+  ret = off
+  for i in range(off, len(l) if step > 0 else -1, step):
+    if stop(l[i]): break
+    ret = i
+  return ret
+
+def until(l: list, off: int, stop: Callable, step: int = 1) -> list:
+  ret = []
+  for i in range(off, len(l) if step > 0 else -1, step):
+    if stop(l[i]): break
+    ret.append(l[i])
+  return ret
 
 mat = [list(l) for l in data.split("\n")]
-for x in mat: print(" ".join(x))
+print("\n".join("".join(x) for x in mat))
 
-s = 0
+total = 0
 for i in range(len(mat)):
   for j in range(len(mat[i])):
     if mat[i][j] != "*": continue
     c = []
     for x in bounds(mat, i, j, BOUNDS):
-      if str.isdigit(mat[x[0]][x[1]]) and not any(y in bounds(mat, x[0], x[1], HBOUNDS) for y in c):
-        c.append(x)
-    print(c)
+      if str.isdigit(mat[x[0]][x[1]]):
+        s, e = cuntil(mat[x[0]], x[1], lambda y: not str.isdigit(y), -1), cuntil(mat[x[0]], x[1], lambda y: not str.isdigit(y))
+        if not any(y in c for y in [(x[0], k) for k in range(s, e+1)]):
+          c.append(x)
     if len(c) < 2: continue
-
-    m = []
-    for k, l in c:
-      n = mat[k][l]
-      for _j in range(l+1, len(mat)):
-        if not str.isdigit(mat[k][_j]): break
-        n += mat[k][_j]
-      for _j in range(l-1, -1, -1):
-        if not str.isdigit(mat[k][_j]): break
-        n = mat[k][_j] + n
-      m.append(int(n))
-    s += reduce(mul, m)
+    # print([int("".join(list(reversed(until(mat[_i], _j-1, lambda x: not str.isdigit(x), -1))) + until(mat[_i], _j, lambda x: not str.isdigit(x)))) for _i, _j in c])
+    total += reduce(mul, [int("".join(list(reversed(until(mat[_i], _j-1, lambda x: not str.isdigit(x), -1))) + until(mat[_i], _j, lambda x: not str.isdigit(x)))) for _i, _j in c])
 
 print()
-print(s)
+print(total)
