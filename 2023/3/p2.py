@@ -1,3 +1,6 @@
+from operator import mul
+from functools import reduce
+
 data = """.......855.442......190..................................969..........520.......59.............................................172..........
 .......................-....@...21...........971........................*..............965.......577=..........316..465*169.................
 ........881.......881....635......*..........*.............%.577.....864.......873.........................742...*...............714..244...
@@ -139,49 +142,46 @@ data = """.......855.442......190..................................969..........
 ....229..........48....=....*.....447......................%....745$..........569...787.........*.....................887...................
 .......................369...515..............100...........174..............................633.973........................................"""
 
-# data = """467..114..
-# ...*......
-# ..35..633.
-# ......#...
-# 617*......
-# .....+.58.
-# ..592.....
-# ......755.
-# ...$.*....
-# .664.598.."""
+data = """467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598.."""
 
-BOUNDS = [(-1,-1),(-1,0),(-1,1),(0,-1),(0,+1),(1,-1),(1,0),(1,1)]
-def issymbol(mat: list, i: int, j: int) -> bool: return mat[i][j] != "." and not str.isdigit(mat[i][j])
+HBOUNDS = [(0,-1),(0,1)]
+BOUNDS = [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
+def bounds(mat: list, i: int, j: int, bcoords: list) -> list: return ((max(min(i+b[0], len(mat[i])-1), 0), max(min(j+b[1], len(mat[i])-1), 0)) for b in bcoords)
 
 mat = [list(l) for l in data.split("\n")]
 for x in mat: print(" ".join(x))
 
-sel = [[0 for _ in range(len(mat[0]))] for _ in range(len(mat))]
-for i in range(len(mat)):
-  for j in range(len(mat[i])):
-    if not str.isdigit(mat[i][j]): continue
-    for b in BOUNDS:
-      if issymbol(mat, max(min(i+b[0], len(mat[i])-1), 0), max(min(j+b[1], len(mat[i])-1), 0)):
-        sel[i][j] = 1
-        break
-
-print()
-for z in sel: print(z)
-
 s = 0
 for i in range(len(mat)):
   for j in range(len(mat[i])):
-    if not sel[i][j]: continue
-    n = mat[i][j]
-    for _j in range(j+1, len(mat)):
-      if not str.isdigit(mat[i][_j]): break
-      n += mat[i][_j]
-      sel[i][_j] = 0
-    for _j in range(j-1, -1, -1):
-      if not str.isdigit(mat[i][_j]): break
-      n = mat[i][_j] + n
-      sel[i][_j] = 0
-    s += int(n)
+    if mat[i][j] != "*": continue
+    c = []
+    for x in bounds(mat, i, j, BOUNDS):
+      if str.isdigit(mat[x[0]][x[1]]) and not any(y in bounds(mat, x[0], x[1], HBOUNDS) for y in c):
+        c.append(x)
+    print(c)
+    if len(c) < 2: continue
+
+    m = []
+    for k, l in c:
+      n = mat[k][l]
+      for _j in range(l+1, len(mat)):
+        if not str.isdigit(mat[k][_j]): break
+        n += mat[k][_j]
+      for _j in range(l-1, -1, -1):
+        if not str.isdigit(mat[k][_j]): break
+        n = mat[k][_j] + n
+      m.append(int(n))
+    s += reduce(mul, m)
 
 print()
 print(s)
