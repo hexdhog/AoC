@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import sys
+from functools import reduce
 
-class Map:
-  def __init__(self, table: list[tuple], child: Map | None = None): self.table, self.child = table, child
-  def resolve(self, value: int) -> int:
-    for dst, src, length in self.table:
-      if src <= value <= src + length:
-        value = value + dst - src
-        break
-    return value if self.child is None else self.child.resolve(value)
+def resolve(table: list, value: int) -> int:
+  for dst, src, length in table:
+    if src <= value <= src + length: return value + dst - src
+  return value
 
 def split(l: list, check: object) -> list:
   ret, tmp = [], [] # type: ignore[var-annotated]
@@ -25,7 +22,5 @@ def split(l: list, check: object) -> list:
   return ret
 
 seeds = tuple(map(int, sys.stdin.readline().strip().split(":")[-1].split()))
-fmap = None
-for table in reversed([[tuple(map(int, y.split())) for y in x[1:]] for x in split([x.strip() for x in sys.stdin.readlines()], "")]): fmap = Map(table, fmap)
-assert fmap is not None
-print(min(map(fmap.resolve, seeds)))
+tables = [[tuple(map(int, y.split())) for y in x[1:]] for x in split([x.strip() for x in sys.stdin.readlines()], "")]
+print(min(reduce(lambda v, t: resolve(t, v), [seed, *tables]) for seed in seeds)) # type: ignore[arg-type,type-var]
