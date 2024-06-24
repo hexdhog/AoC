@@ -21,8 +21,8 @@ for y in range(len(matrix)):
     if matrix[y][x] == "S": start = y * len(matrix[0]) + x
     for i in range(len(COORD)):
       adjy, adjx = y + COORD[i][0], x + COORD[i][1]
-      if not all(0 <= x < len(matrix) for x in (adjx, adjy)): continue
-      if matrix[y][x] in SRC[i] and matrix[adjy][adjx] in DST[i]: adj[y * len(matrix[0]) + x][adjy * len(matrix[0]) + adjx] = 1
+      if not (0 <= adjy < len(matrix) and 0 <= adjx < len(matrix[y])): continue
+      if matrix[y][x] in SRC[i] and matrix[adjy][adjx] in DST[i]: adj[y * len(matrix[0]) + x][adjy * len(matrix[y]) + adjx] = 1
 
 def bfs(mat: list, root: int) -> list:
   length, queue = [0] * len(mat), deque([root])
