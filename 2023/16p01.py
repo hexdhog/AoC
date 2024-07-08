@@ -15,7 +15,7 @@ gvis = [[set() for _ in range(len(grid[0]))] for _ in range(len(grid))] # type: 
 def bounds(x: int, y: int) -> bool: return all(0 <= a < b for a, b in ((x, len(grid[0])), (y, len(grid))))
 
 beams = [(0, 0, 1, 0)]
-gvis[0][0].add((1, 0))
+gvis[beams[0][1]][beams[0][0]].add(tuple(beams[0][2:]))
 while len(beams) > 0:
   tmp = [] # type: ignore[var-annotated]
   for beam in beams:
