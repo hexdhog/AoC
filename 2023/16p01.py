@@ -12,7 +12,7 @@ MOVS = {
 grid = [list(x.strip()) for x in sys.stdin.readlines()]
 gvis = [[set() for _ in range(len(grid[0]))] for _ in range(len(grid))] # type: ignore[var-annotated]
 
-def bounds(x: int, y: int) -> bool: return all(0 <= a < b for a, b in ((x, len(grid[0])), (y, len(grid))))
+def bounds(x: int, y: int) -> bool: return 0 <= x < len(grid[0]) and 0 <= y < len(grid)
 
 beams = [(0, 0, 1, 0)]
 gvis[beams[0][1]][beams[0][0]].add(tuple(beams[0][2:]))
