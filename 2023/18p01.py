@@ -10,8 +10,6 @@ def mov(p: tuple, dp: tuple) -> tuple: return tuple(a+b for a, b in zip(p, dp))
 def mul(p: tuple, m: int) -> tuple: return tuple(m*x for x in p)
 
 steps = [mul(DIR[a], int(b)) for a, b, *_ in (x.strip().split() for x in sys.stdin.readlines())]
-# print(steps)
-
 pos = (0, 0)
 path = [pos] + [pos := mov(pos, s) for s in steps]
 
