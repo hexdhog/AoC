@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import sys
 
+from functools import reduce
+
 class Module:
   def __init__(self, name: str, mtype: str, childs: list, parents: list):
     self.name, self.mtype, self.childs, self.parents, self.state = name, mtype, childs, parents, False
@@ -13,13 +15,15 @@ class Module:
     if self.mtype == "&": return not all(p.state for p in self.parents)
     return self.state
 
-mods, childs = { "out": Module("out", "", [], []) }, {}
+mods, childs = {}, {}
 for l in sys.stdin.readlines():
   a, b = l.strip().split(" ", 1)
   name, mtyp = a if (bcst := a == "broadcaster") else a[1:], a if bcst else a[0]
   mods[name], childs[name] = Module(name, mtyp, [], []), b[3:].split(", ")
+for m in set(reduce(lambda x, y: x+y, childs.values())): # type: ignore[operator]
+  if m not in mods: mods[m], childs[m] = Module(m, "", [], []), []
 
-for mod, chlds in ((mods[n], [mods.get(c, mods["out"]) for c in childs[n]]) for n in mods if n in childs):
+for mod, chlds in ((mods[n], [mods[c] for c in childs[n]]) for n in mods):
   mod.childs = chlds
   for c in chlds: c.parents.append(mod)
 for mod in mods.values(): mod.init()
