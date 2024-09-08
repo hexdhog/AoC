@@ -8,26 +8,27 @@ import sys
 def parse(a, b): return list(a), tuple(map(int, b.split(",")))
 data = [parse(*l.strip().split()) for l in sys.stdin.readlines()]
 
-def find(sprs, nums, sproff = 0, numoff = 0, reverse=False):
+def simplefind(sprs, nums, sproff = 0, numoff = 0, reverse=False):
   if reverse: sprs, nums = sprs[::-1], nums[::-1]
   pos, si, ni = [], sproff, numoff
   while si < len(sprs) and ni < len(nums):
-    spre, spr = sprs[se] if (se := si + nums[ni]) < len(sprs) else "", sprs[si:se]
-    if len(spr) == nums[ni] and "." not in spr and spre != "#":
+    ss, se = si - 1, si + nums[ni]
+    sprb, spr, spre = sprs[ss] if ss >= 0 else "", sprs[si:se], sprs[se] if se < len(sprs) else ""
+    if len(spr) == nums[ni] and "." not in spr and "#" not in (sprb, spre):
       pos.append(si)
       si, ni = se, ni + 1
     si += 1
   return pos if not reverse else [len(sprs) - p - nums[i] - 1 for i, p in enumerate(pos)][::-1]
 
-# def inwrdf(x): return (x := x + 1) // 2 * (1 if x % 2 != 0 else -1)
-# def inwrd(l): return (inwrdf(x) for x in range(l))
-# def _find(sprs, nums):
-#   pos = []
-#   ss, se, ni = 0, len(sprs) - 1, 0
-#   while ss <= se and ni < len(nums):
-#     n = inwrdf(ni)
-#     s = ss if n >= 0 else se
-#   return pos
+def find(sprs, nums, sproff = 0, numoff = 0, reverse=False):
+  pos = simplefind(sprs, nums, sproff, numoff, reverse)
+  while True:
+    out = [range(p, p+n) for p, n in zip(pos, nums)]
+    fix = [i for i, c in enumerate(sprs) if c == "#" and all(i not in r for r in out)]
+    if len(fix) == 0: break
+    pidx = [max(i for i in range(len(out)) if out[i][-1] < f) for f in fix]
+    for i, f in zip(pidx[::-1], fix[::-1]): pos[i] = simplefind(sprs, nums[i:i+1], f-nums[i], 0, reverse)[0]
+  return pos
 
 def tostr(spr, num, pos):
   tmp = list(spr)
@@ -37,16 +38,11 @@ def tostr(spr, num, pos):
   return "".join(tmp).replace("?", ".")
 
 for sprs, nums in data:
-  print("".join(sprs), *nums)
+  # print("".join(sprs), *nums)
   pos = find(sprs, nums)
   s = tostr(sprs, nums, pos)
-  print(s)
-  # check = [len(x) for x in filter(None, s.split("."))] # type: ignore[var-annotated]
-  # fix = [i - 1 for i, v in enumerate(zip_longest(nums, check)) if v[0] != v[1]]
-  # print(check)
-  # print(fix)
-  # print(pos)
-
+  check = tuple(len(x) for x in filter(None, s.split("."))) # type: ignore[var-annotated]
+  assert check == nums
 
 
 
