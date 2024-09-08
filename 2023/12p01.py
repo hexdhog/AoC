@@ -1,55 +1,81 @@
 #!/usr/bin/env python3
 
-from __future__ import annotations
-
 import sys
 
-# from math import factorial
+# from collections import deque
+# from itertools import zip_longest
 
-data = [(y[0], list(map(int, y[1].split(",")))) for y in (x.strip().split(" ") for x in sys.stdin.readlines())]
-def disp(d: list): print("\n".join(f"{x:25s} {','.join(map(str, y))}" for x, y in d))
-disp(data)
-print()
+def parse(a, b): return list(a), tuple(map(int, b.split(",")))
+data = [parse(*l.strip().split()) for l in sys.stdin.readlines()]
 
-for sprs, cnts in data:
-  sprm = 0 # spring string max index for the current count
-  for i in range(len(cnts)):
-    j, k = sprm, i
-    spr = sprs
-    while j < len(sprs) and k < len(cnts):
-      n = cnts[k]
-      tmp = sprs[j:j+n].replace("?", "#")
-      if tmp == "#" * n and (j+n >= len(sprs) or sprs[j+n] != "#"):
-        spr = spr[:j] + tmp + sprs[j+n:]
-        if i == k: sprm = j+n+1
-        j, k = j+n, k+1
-      j += 1
-    if k == len(cnts): print(spr, i)
+def find(sprs, nums, sproff = 0, numoff = 0, reverse=False):
+  if reverse: sprs, nums = sprs[::-1], nums[::-1]
+  pos, si, ni = [], sproff, numoff
+  while si < len(sprs) and ni < len(nums):
+    spre, spr = sprs[se] if (se := si + nums[ni]) < len(sprs) else "", sprs[si:se]
+    if len(spr) == nums[ni] and "." not in spr and spre != "#":
+      pos.append(si)
+      si, ni = se, ni + 1
+    si += 1
+  return pos if not reverse else [len(sprs) - p - nums[i] - 1 for i, p in enumerate(pos)][::-1]
 
-# def bc(n: int, k: int) -> int: return factorial(n) // (factorial(k)*factorial(n-k))
-#
-# total = 0
-# for sprs, cnts in data:
-#   spr, cnt = sprs, []
-#   i, j = 0, 0
-#   while i < len(sprs) and j < len(cnts):
-#     n = cnts[j]
-#     if sprs[i:i+n].replace("?", "#") == "#" * n and (i+n >= len(sprs) or sprs[i+n] != "#"):
-#       cnt.append(sprs[i:i+n].count("?"))
-#       spr = spr[:i] + sprs[i:i+n].replace("?", "x") + sprs[i+n:]
-#       i, j = i+n, j+1
-#     i += 1
-#
-#   tmp = [x.split("?") for x in filter(None, spr[spr.index("x"):].split("."))]
-#   print(sprs, cnts)
-#   print(spr)
-#   # print(tmp)
-#   s = 1
-#   for x in tmp:
-#     c = len(list(filter(None, x)))
-#     s *= bc(len(x), c)
-#     # print(x)
-#   print(s)
-#   # print()
-#   total += s
-# print(total)
+# def inwrdf(x): return (x := x + 1) // 2 * (1 if x % 2 != 0 else -1)
+# def inwrd(l): return (inwrdf(x) for x in range(l))
+# def _find(sprs, nums):
+#   pos = []
+#   ss, se, ni = 0, len(sprs) - 1, 0
+#   while ss <= se and ni < len(nums):
+#     n = inwrdf(ni)
+#     s = ss if n >= 0 else se
+#   return pos
+
+def tostr(spr, num, pos):
+  tmp = list(spr)
+  for i, p in enumerate(pos):
+    for j in range(p, p+num[i]):
+      if j < len(tmp): tmp[j] = "#"
+  return "".join(tmp).replace("?", ".")
+
+for sprs, nums in data:
+  print("".join(sprs), *nums)
+  pos = find(sprs, nums)
+  s = tostr(sprs, nums, pos)
+  print(s)
+  # check = [len(x) for x in filter(None, s.split("."))] # type: ignore[var-annotated]
+  # fix = [i - 1 for i, v in enumerate(zip_longest(nums, check)) if v[0] != v[1]]
+  # print(check)
+  # print(fix)
+  # print(pos)
+
+
+
+
+
+
+
+  # c = tuple(len(x) for x in filter(None, s.split(".")))
+  # assert c == nums
+  # print(i := i + 1)
+  # print()
+  # q: deque = deque([find(sprs, nums), []])
+  # cnt = 0
+  # while len(q) > 0:
+  #   x = q.pop()
+
+  #   spr, num = (a[b:] for a, b in zip((sprs, nums), x))
+  #   pos = find(spr, num)
+  #
+  #   print(base, x, spr, num, pos)
+  #   print(" " * (len(sprs) - len(spr)) + tostr(spr, num), len(pos) == len(num))
+  #
+  #   if len(pos) == len(num):
+  #     for i, p in enumerate(pos):
+  #       tmp = base + pos[:i], (p+1, i)
+  #       q.append(tmp)
+  #   if (cnt := cnt + 1) > 20: break
+  #   #   for i, p in enumerate(pos):
+  #   #     if (x := (p+1, i)) not in hist:
+  #   #       hist.add(x)
+  #   #       q.append(x)
+  # break
+  # print()
