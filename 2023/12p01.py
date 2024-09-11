@@ -2,8 +2,7 @@
 
 import sys
 
-# from collections import deque
-# from itertools import zip_longest
+from collections import deque
 
 def parse(a, b): return list(a), tuple(map(int, b.split(",")))
 data = [parse(*l.strip().split()) for l in sys.stdin.readlines()]
@@ -22,56 +21,40 @@ def simplefind(sprs, nums, sproff = 0, numoff = 0, reverse=False):
 
 def find(sprs, nums, sproff = 0, numoff = 0, reverse=False):
   pos = simplefind(sprs, nums, sproff, numoff, reverse)
-  while True:
-    out = [range(p, p+n) for p, n in zip(pos, nums)]
-    fix = [i for i, c in enumerate(sprs) if c == "#" and all(i not in r for r in out)]
-    if len(fix) == 0: break
-    pidx = [max(i for i in range(len(out)) if out[i][-1] < f) for f in fix]
-    for i, f in zip(pidx[::-1], fix[::-1]): pos[i] = simplefind(sprs, nums[i:i+1], f-nums[i], 0, reverse)[0]
+  # print(pos, nums[numoff:])
+  if len(pos) == len(nums[numoff:]):
+    while True:
+      out = [range(p, p+n) for p, n in zip(pos, nums[numoff:])]
+      fix = [i for i, c in enumerate(sprs) if i >= sproff and c == "#" and all(i not in r for r in out)]
+      pidx = [m for f in fix if (m := max((numoff + i for i in range(len(out)) if out[i][-1] < f), default=-1)) >= 0]
+      if len(pidx) == 0: break
+      for i, f in zip(pidx[::-1], fix[::-1]):
+        tmp = simplefind(sprs, nums[i:i+1], f-nums[i], 0, reverse)
+        if len(tmp) == 0: return pos[:i-numoff]
+        pos[i-numoff] = tmp[0]
   return pos
 
-def tostr(spr, num, pos):
-  tmp = list(spr)
-  for i, p in enumerate(pos):
-    for j in range(p, p+num[i]):
-      if j < len(tmp): tmp[j] = "#"
+def tostr(sprs, nums, pos):
+  tmp = list(sprs)
+  for n, p in zip(nums, pos):
+    for i in range(p, p+n):
+      if i < len(tmp): tmp[i] = "#"
   return "".join(tmp).replace("?", ".")
 
+res = 0
 for sprs, nums in data:
-  # print("".join(sprs), *nums)
-  pos = find(sprs, nums)
-  s = tostr(sprs, nums, pos)
-  check = tuple(len(x) for x in filter(None, s.split("."))) # type: ignore[var-annotated]
-  assert check == nums
+  q: deque = deque([([], 0)])
+  cnt = 0
+  while len(q) > 0:
+    base, sproff = q.pop()
+    numoff = len(base)
+    pos = find(sprs, nums, sproff, numoff)
+    tmp = base + pos
+    s = tostr(sprs, nums, tmp)
+    check = len(tmp) == len(nums) and nums == tuple(len(x) for x in filter(None, s.split("."))) # type: ignore[var-annotated]
+    if check:
+      cnt += 1
+      for i, p in enumerate(pos): q.append((base + pos[:i], p + 1))
+  res += cnt
 
-
-
-
-
-
-  # c = tuple(len(x) for x in filter(None, s.split(".")))
-  # assert c == nums
-  # print(i := i + 1)
-  # print()
-  # q: deque = deque([find(sprs, nums), []])
-  # cnt = 0
-  # while len(q) > 0:
-  #   x = q.pop()
-
-  #   spr, num = (a[b:] for a, b in zip((sprs, nums), x))
-  #   pos = find(spr, num)
-  #
-  #   print(base, x, spr, num, pos)
-  #   print(" " * (len(sprs) - len(spr)) + tostr(spr, num), len(pos) == len(num))
-  #
-  #   if len(pos) == len(num):
-  #     for i, p in enumerate(pos):
-  #       tmp = base + pos[:i], (p+1, i)
-  #       q.append(tmp)
-  #   if (cnt := cnt + 1) > 20: break
-  #   #   for i, p in enumerate(pos):
-  #   #     if (x := (p+1, i)) not in hist:
-  #   #       hist.add(x)
-  #   #       q.append(x)
-  # break
-  # print()
+print(res)
